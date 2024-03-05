@@ -1,0 +1,22 @@
+{
+    "name": "laucov/views",
+    "description": "Library for view management and templating.",
+    "type": "library",
+    "license": "Apache-2.0",
+    "autoload": {
+        "psr-4": {
+            "Laucov\\Views\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Rafael Covaleski Pereira",
+            "email": "rafael.covaleski@laucov.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "laravel/pint": "^1.13"
+    }
+}
