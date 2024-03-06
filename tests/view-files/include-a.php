@@ -27,15 +27,12 @@
  */
 
 /** @var \Laucov\Views\View $this */
+
+$values = [];
+foreach (['a', 'b', 'c'] as $name) {
+    if (isset($$name)) {
+        $values[] = "{$name}={$$name}";
+    }
+}
 ?>
-<?=$this->extend('templates/template-a')?>
-
-<?=$this->openSection('excerpt')?>
-    <p>This is an excerpt.</p>
-<?=$this->closeSection()?>
-
-<?=$this->openSection('body')?>
-    <p>This is a body.</p>
-<?=$this->closeSection()?>
-
-<p>Some final note.</p>
+<pre><?=implode(', ', $values)?></pre>

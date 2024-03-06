@@ -34,6 +34,11 @@ namespace Laucov\Views;
 class View
 {
     /**
+     * Parent section indicator.
+     */
+    protected const PARENT_SECTION = 1;
+
+    /**
      * Whether this view is currently caching.
      */
     protected bool $cache = false;
@@ -59,6 +64,13 @@ class View
     protected string $directory;
 
     /**
+     * Initial output buffer level.
+     * 
+     * Registered everytime `createContent()` is called.
+     */
+    protected int $obLevel = 0;
+
+    /**
      * Parent view name.
      */
     protected null|string $parent = null;
@@ -74,7 +86,14 @@ class View
     protected null|string $section = null;
 
     /**
-     * Currently built sessions.
+     * Sections built by child views.
+     * 
+     * @var array<string, string[]>
+     */
+    protected array $sectionOverrides = [];
+
+    /**
+     * Currently built sections.
      * 
      * @var array<string, string[]>
      */
@@ -163,17 +182,27 @@ class View
     }
 
     /**
+     * Close and print the current open section.
+     */
+    protected function commitSection(): string
+    {
+        $name = $this->section;
+        $this->closeSection();
+        return $this->getSection($name);
+    }
+
+    /**
      * Create the view's HTML.
      */
     protected function createContent(): string
     {
         // Get view content.
+        $this->obLevel = ob_get_level();
         ob_start();
         extract($this->temporaryData);
         require $this->getFilename();
         $content = preg_replace('/^\s+/m', '', ob_get_clean());
         $content = preg_replace('/\s+$/m', '', $content);
-        // $content = preg_replace('/^\n$/m', '', $content);
 
         // Check if the view extends a template.
         if ($this->parent !== null) {
@@ -182,8 +211,17 @@ class View
                 $this->cacheDirectory,
                 $this->parent,
             );
-            $parent->sections = $this->sections;
-            $content = $parent->generate() . "\n" . $content;
+            $section_keys = array_unique([
+                ...array_keys($this->sections),
+                ...array_keys($this->sectionOverrides),
+            ]);
+            $sections = array_map([$this, 'resolveSection'], $section_keys);
+            $sections = array_combine($section_keys, $sections);
+            $parent->sectionOverrides = $sections;
+            $parent_content = $parent->generate($this->temporaryData);
+            $content = strlen($content) > 0
+                ? "{$parent_content}\n{$content}"
+                : $parent_content;
         }
 
         return $content;
@@ -192,9 +230,19 @@ class View
     /**
      * Extend a view.
      */
-    public function extend(string $name): string
+    public function extend(string $path): string
     {
-        $this->parent = $name;
+        $this->parent = $path;
+        return '';
+    }
+
+    /**
+     * Append the current output buffer to the active section.
+     */
+    public function flushSection(): string
+    {
+        $this->sections[$this->section][] = ob_get_clean();
+        ob_start();
         return '';
     }
 
@@ -221,6 +269,36 @@ class View
     }
 
     /**
+     * Add the original parent section if overriding.
+     */
+    protected function getParent(): string
+    {
+        $this->flushSection();
+        $this->sections[$this->section][] = static::PARENT_SECTION;
+        return '';
+    }
+
+    protected function include(
+        string $path,
+        null|array $data = null,
+        bool $merge_data = true,
+    ): string {
+        // Merge data.
+        if ($data !== null && $merge_data) {
+            $data = array_replace($this->temporaryData, $data);
+        }
+
+        // Output view.
+        $view = new View(
+            $this->directory,
+            $this->cacheDirectory,
+            $path,
+        );
+
+        return $view->generate($data ?? $this->temporaryData) . PHP_EOL;
+    }
+
+    /**
      * Open a section to append the next output contents.
      */
     protected function openSection(string $name): string
@@ -231,12 +309,40 @@ class View
     }
 
     /**
-     * Print the contents of a section.
+     * Get the contents of a section.
      */
-    protected function printSection(string $name): string
+    protected function getSection(string $name): string
     {
-        return array_key_exists($name, $this->sections)
-            ? implode('', $this->sections[$name])
-            : '';
+        $contents = array_filter($this->resolveSection($name), 'is_string');
+        return implode('', $contents);
+    }
+
+    /**
+     * Resolve all placeholders from a section.
+     * 
+     * @return array<string>
+     */
+    protected function resolveSection(string $name): array
+    {
+        // Get the current section content.
+        $section = $this->sections[$name] ?? [];
+
+        // Apply override.
+        if (array_key_exists($name, $this->sectionOverrides)) {
+            // Get override parts.
+            $override = $this->sectionOverrides[$name];
+            // Merge override with parent section.
+            $result = [];
+            foreach ($override as $part) {
+                if ($part === static::PARENT_SECTION) {
+                    array_push($result, ...$section);
+                } else {
+                    $result[] = $part;
+                }
+            }
+            return $result;
+        } else {
+            return $section;
+        }
     }
 }

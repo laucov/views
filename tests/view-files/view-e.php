@@ -28,14 +28,9 @@
 
 /** @var \Laucov\Views\View $this */
 ?>
-<?=$this->extend('templates/template-a')?>
-
-<?=$this->openSection('excerpt')?>
-    <p>This is an excerpt.</p>
-<?=$this->closeSection()?>
-
-<?=$this->openSection('body')?>
-    <p>This is a body.</p>
-<?=$this->closeSection()?>
-
-<p>Some final note.</p>
+<p>Include with inherited data:</p>
+<?=$this->include('include-a')?>
+<p>Include with custom merged data:</p>
+<?=$this->include('include-a', ['b' => 'hello', 'c' => 'baz'])?>
+<p>Include with custom data without merging:</p>
+<?=$this->include('include-a', ['b' => 'hello', 'c' => 'baz'], false)?>

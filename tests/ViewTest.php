@@ -40,11 +40,11 @@ class ViewTest extends TestCase
 {
     /**
      * @covers ::cache
+     * @covers ::generate
+     * @covers ::getCacheFilename
      * @uses Laucov\Views\View::__construct
      * @uses Laucov\Views\View::createContent
-     * @uses Laucov\Views\View::generate
      * @uses Laucov\Views\View::getFilename
-     * @uses Laucov\Views\View::getCacheFilename
      */
     public function testCanCache(): void
     {
@@ -98,41 +98,87 @@ class ViewTest extends TestCase
     }
 
     /**
-     * @covers ::extend
      * @covers ::closeSection
+     * @covers ::commitSection
+     * @covers ::createContent
+     * @covers ::extend
+     * @covers ::flushSection
+     * @covers ::getParent
+     * @covers ::getSection
      * @covers ::openSection
-     * @covers ::printSection
+     * @covers ::resolveSection
      * @uses Laucov\Views\View::__construct
-     * @uses Laucov\Views\View::createContent
      * @uses Laucov\Views\View::generate
      * @uses Laucov\Views\View::getFilename
      */
     public function testCanExtend(): void
     {
-        // Create view.
+        // Test child view.
         $view = new View(
             __DIR__ . '/view-files',
             __DIR__ . '/view-cache',
             'view-c',
         );
-
-        // Output.
         $expected = <<<HTML
             <header>
             <h1>Article title</h1>
             <p>This is an excerpt.</p>
             </header>
             <main>
+            <p>This is a body.</p>
             </main>
             <p>Some final note.</p>
             HTML;
         $this->assertSame($expected, $view->generate());
 
-        // Test section overrides:
-        // @todo ::commitSection
-        // @todo ::printParent
-        // Test includes:
-        // @todo ::include
+        // Test grandchild view.
+        $view = new View(
+            __DIR__ . '/view-files',
+            __DIR__ . '/view-cache',
+            'view-d',
+        );
+        $expected = <<<HTML
+            <header>
+            <h1>My title</h1>
+            <p>This is an excerpt.</p>
+            </header>
+            <main>
+            <p>Prepend some content.</p>
+            <p>This is a body.</p>
+            <p>Append some content.</p>
+            </main>
+            <p>Some final note.</p>
+            HTML;
+        $this->assertSame($expected, $view->generate(['title' => 'My title']));
+    }
+
+    /**
+     * @covers ::include
+     * @uses Laucov\Views\View::__construct
+     * @uses Laucov\Views\View::createContent
+     * @uses Laucov\Views\View::generate
+     * @uses Laucov\Views\View::getFilename
+     */
+    public function testCanInclude(): void
+    {
+        // Test view.
+        $view = new View(
+            __DIR__ . '/view-files',
+            __DIR__ . '/view-cache',
+            'view-e',
+        );
+        $expected = <<<HTML
+            <p>Include with inherited data:</p>
+            <pre>a=foo, b=bar</pre>
+            <p>Include with custom merged data:</p>
+            <pre>a=foo, b=hello, c=baz</pre>
+            <p>Include with custom data without merging:</p>
+            <pre>b=hello, c=baz</pre>
+            HTML;
+        $this->assertSame($expected, $view->generate([
+            'a' => 'foo',
+            'b' => 'bar',
+        ]));
     }
 
     /**

@@ -28,14 +28,10 @@
 
 /** @var \Laucov\Views\View $this */
 ?>
-<?=$this->extend('templates/template-a')?>
-
-<?=$this->openSection('excerpt')?>
-    <p>This is an excerpt.</p>
-<?=$this->closeSection()?>
+<?=$this->extend('view-c')?>
 
 <?=$this->openSection('body')?>
-    <p>This is a body.</p>
+    <p>Prepend some content.</p>
+    <?=$this->getParent()?>
+    <p>Append some content.</p>
 <?=$this->closeSection()?>
-
-<p>Some final note.</p>
