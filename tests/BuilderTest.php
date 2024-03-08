@@ -38,6 +38,24 @@ use PHPUnit\Framework\TestCase;
  */
 class BuilderTest extends TestCase
 {
+    public function pathProvider(): array
+    {
+        return [
+            ['view-h', '<p>Hello, World!</p>'],
+            ['/view-h', '<p>Hello, World!</p>'],
+            ['/view-h/', '<p>Hello, World!</p>'],
+            ['view-h/', '<p>Hello, World!</p>'],
+            ['subfolder/view-j', '<p>Hello, Earth!</p>'],
+            ['/subfolder/view-j', '<p>Hello, Earth!</p>'],
+            ['/subfolder/view-j/', '<p>Hello, Earth!</p>'],
+            ['subfolder/view-j/', '<p>Hello, Earth!</p>'],
+            ['subfolder/subsubfolder/view-k', '<p>Hello, Planet!</p>'],
+            ['/subfolder/subsubfolder/view-k', '<p>Hello, Planet!</p>'],
+            ['/subfolder/subsubfolder/view-k/', '<p>Hello, Planet!</p>'],
+            ['subfolder/subsubfolder/view-k/', '<p>Hello, Planet!</p>'],
+        ];
+    }
+
     /**
      * @covers ::closeSection
      * @covers ::commitSection
@@ -111,7 +129,7 @@ class BuilderTest extends TestCase
      * @covers ::__construct
      * @covers ::generate
      */
-    public function testCanOutputWithData(): void
+    public function testCanSetData(): void
     {
         // Generate without data.
         $view = new Builder(__DIR__ . '/view-files', 'view-a');
@@ -136,5 +154,18 @@ class BuilderTest extends TestCase
             <p>Data keys: []</p>
             HTML;
         $this->assertSame($expected_c, $view->generate());
+    }
+
+    /**
+     * @covers ::__construct
+     * @uses Laucov\Views\Builder::generate
+     * @dataProvider pathProvider
+     */
+    public function testTrimsPathsAndAllowsSubfolders(
+        string $path,
+        string $expected,
+    ): void {
+        $builder = new Builder(__DIR__ . '/view-files', $path);
+        $this->assertSame($expected, $builder->generate());
     }
 }

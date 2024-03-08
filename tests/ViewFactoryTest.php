@@ -31,7 +31,6 @@ declare(strict_types=1);
 namespace Tests;
 
 use Laucov\Views\ViewFactory;
-use Laucov\Views\View;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -39,20 +38,6 @@ use PHPUnit\Framework\TestCase;
  */
 class ViewFactoryTest extends TestCase
 {
-    public function pathProvider(): array
-    {
-        return [
-            ['view-h', '<p>Hello, World!</p>'],
-            ['view-i', '<p>Hello, Universe!</p>'],
-            ['/view-i', '<p>Hello, Universe!</p>'],
-            ['/view-i/', '<p>Hello, Universe!</p>'],
-            ['view-i/', '<p>Hello, Universe!</p>'],
-            ['subfolder/view-j', '<p>Hello, Earth!</p>'],
-            ['/subfolder/view-j', '<p>Hello, Earth!</p>'],
-            ['/subfolder/view-j/', '<p>Hello, Earth!</p>'],
-            ['subfolder/view-j/', '<p>Hello, Earth!</p>'],
-        ];
-    }
 
     /**
      * @covers ::__construct
@@ -61,15 +46,25 @@ class ViewFactoryTest extends TestCase
      * @uses Laucov\Views\Builder::generate
      * @uses Laucov\Views\View::__construct
      * @uses Laucov\Views\View::get
-     * @dataProvider pathProvider
      */
-    public function testCanCreateViews(string $path, string $expected): void
+    public function testCanCreateViews(): void
     {
+        // Create view from factory.
         $factory = new ViewFactory(
             __DIR__ . '/view-files',
             __DIR__ . '/view-cache',
         );
-        $view = $factory->getView($path);
-        $this->assertSame($expected, $view->get());
+        $view = $factory->getView('view-i');
+
+        // Check properties.
+        $reflection = new \ReflectionObject($view);
+        $this->assertSame(
+            __DIR__ . '/view-files',
+            $reflection->getProperty('directory')->getValue($view),
+        );
+        $this->assertSame(
+            __DIR__ . '/view-cache',
+            $reflection->getProperty('cacheDirectory')->getValue($view),
+        );
     }
 }
