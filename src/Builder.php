@@ -105,12 +105,10 @@ class Builder
         if ($this->parent !== null) {
             // Create parent builder.
             $parent = new Builder($this->directory, $this->parent);
-            $section_keys = array_unique([
-                ...array_keys($this->sections),
-                ...array_keys($this->sectionOverrides),
-            ]);
-            $sections = array_map([$this, 'resolveSection'], $section_keys);
-            $sections = array_combine($section_keys, $sections);
+            // Resolve all sections.
+            $section_names = $this->getSectionNames();
+            $sections = array_map([$this, 'resolveSection'], $section_names);
+            $sections = array_combine($section_names, $sections);
             $parent->sectionOverrides = $sections;
             // Generate and prepend the parent content.
             $parent_content = $parent->generate($this->temporaryData);
@@ -175,6 +173,28 @@ class Builder
         return '';
     }
 
+    /**
+     * Get the contents of a section.
+     */
+    protected function getSection(string $name): string
+    {
+        $contents = array_filter($this->resolveSection($name), 'is_string');
+        return implode('', $contents);
+    }
+
+    /**
+     * Get all registered section names.
+     * 
+     * @var array<string>
+     */
+    protected function getSectionNames(): array
+    {
+        return array_unique([
+            ...array_keys($this->sectionOverrides),
+            ...array_keys($this->sections),
+        ]);
+    }
+
     protected function include(
         string $path,
         null|array $data = null,
@@ -200,15 +220,6 @@ class Builder
         $this->section = $name;
         ob_start();
         return '';
-    }
-
-    /**
-     * Get the contents of a section.
-     */
-    protected function getSection(string $name): string
-    {
-        $contents = array_filter($this->resolveSection($name), 'is_string');
-        return implode('', $contents);
     }
 
     /**

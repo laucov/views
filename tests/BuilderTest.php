@@ -46,6 +46,7 @@ class BuilderTest extends TestCase
      * @covers ::generate
      * @covers ::getParent
      * @covers ::getSection
+     * @covers ::getSectionNames
      * @covers ::openSection
      * @covers ::resolveSection
      * @uses Laucov\Views\Builder::__construct
