@@ -26,7 +26,7 @@
  * @copyright © 2024 Laucov Serviços de Tecnologia da Informação Ltda.
  */
 
-/** @var \Laucov\Views\View $this */
+/** @var \Laucov\Views\Builder $this */
 ?>
 <header>
     <h1><?=$title ?? 'Article title'?></h1>

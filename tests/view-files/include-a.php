@@ -26,7 +26,7 @@
  * @copyright © 2024 Laucov Serviços de Tecnologia da Informação Ltda.
  */
 
-/** @var \Laucov\Views\View $this */
+/** @var \Laucov\Views\Builder $this */
 
 $values = [];
 foreach (['a', 'b', 'c'] as $name) {

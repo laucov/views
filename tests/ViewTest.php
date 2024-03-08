@@ -39,12 +39,12 @@ use PHPUnit\Framework\TestCase;
 class ViewTest extends TestCase
 {
     /**
+     * @covers ::__construct
      * @covers ::cache
-     * @covers ::generate
+     * @covers ::get
      * @covers ::getCacheFilename
-     * @uses Laucov\Views\View::__construct
-     * @uses Laucov\Views\View::createContent
-     * @uses Laucov\Views\View::getFilename
+     * @uses Laucov\Views\Builder::__construct
+     * @uses Laucov\Views\Builder::generate
      */
     public function testCanCache(): void
     {
@@ -59,7 +59,7 @@ class ViewTest extends TestCase
         $cache = __DIR__ . '/view-cache/view-a.html';
         $actual = $view
             ->cache()
-            ->generate(['name' => 'Mary']);
+            ->get(['name' => 'Mary']);
         $expected_a = <<<HTML
             <main>
             <p>Hello, Mary!</p>
@@ -69,7 +69,7 @@ class ViewTest extends TestCase
 
         // Test if cached.
         $this->assertFileExists($cache);
-        $this->assertSame($expected_a, $view->generate(['name' => 'John']));
+        $this->assertSame($expected_a, $view->get(['name' => 'John']));
 
         // Test default TTL.
         \Laucov\Views\Time::$time = 3600;
@@ -78,7 +78,7 @@ class ViewTest extends TestCase
             <p>Greetings, Stranger!</p>
             </main>
             HTML;
-        $this->assertSame($expected_b, $view->generate());
+        $this->assertSame($expected_b, $view->get());
 
         // Cache with custom TTL and name.
         $view->cache(30, 'view-a-custom');
@@ -87,139 +87,14 @@ class ViewTest extends TestCase
             <p>Hello, Harry!</p>
             </main>
             HTML;
-        $this->assertSame($expected_b, $view->generate(['name' => 'Harry']));
+        $this->assertSame($expected_b, $view->get(['name' => 'Harry']));
         \Laucov\Views\Time::$time = 3630;
         $expected_c = <<<HTML
             <main>
             <p>Hello, Jane!</p>
             </main>
             HTML;
-        $this->assertSame($expected_c, $view->generate(['name' => 'Jane']));
-    }
-
-    /**
-     * @covers ::closeSection
-     * @covers ::commitSection
-     * @covers ::createContent
-     * @covers ::extend
-     * @covers ::flushSection
-     * @covers ::getParent
-     * @covers ::getSection
-     * @covers ::openSection
-     * @covers ::resolveSection
-     * @uses Laucov\Views\View::__construct
-     * @uses Laucov\Views\View::generate
-     * @uses Laucov\Views\View::getFilename
-     */
-    public function testCanExtend(): void
-    {
-        // Test child view.
-        $view = new View(
-            __DIR__ . '/view-files',
-            __DIR__ . '/view-cache',
-            'view-c',
-        );
-        $expected = <<<HTML
-            <header>
-            <h1>Article title</h1>
-            <p>This is an excerpt.</p>
-            </header>
-            <main>
-            <p>This is a body.</p>
-            </main>
-            <p>Some final note.</p>
-            HTML;
-        $this->assertSame($expected, $view->generate());
-
-        // Test grandchild view.
-        $view = new View(
-            __DIR__ . '/view-files',
-            __DIR__ . '/view-cache',
-            'view-d',
-        );
-        $expected = <<<HTML
-            <header>
-            <h1>My title</h1>
-            <p>This is an excerpt.</p>
-            </header>
-            <main>
-            <p>Prepend some content.</p>
-            <p>This is a body.</p>
-            <p>Append some content.</p>
-            </main>
-            <p>Some final note.</p>
-            HTML;
-        $this->assertSame($expected, $view->generate(['title' => 'My title']));
-    }
-
-    /**
-     * @covers ::include
-     * @uses Laucov\Views\View::__construct
-     * @uses Laucov\Views\View::createContent
-     * @uses Laucov\Views\View::generate
-     * @uses Laucov\Views\View::getFilename
-     */
-    public function testCanInclude(): void
-    {
-        // Test view.
-        $view = new View(
-            __DIR__ . '/view-files',
-            __DIR__ . '/view-cache',
-            'view-e',
-        );
-        $expected = <<<HTML
-            <p>Include with inherited data:</p>
-            <pre>a=foo, b=bar</pre>
-            <p>Include with custom merged data:</p>
-            <pre>a=foo, b=hello, c=baz</pre>
-            <p>Include with custom data without merging:</p>
-            <pre>b=hello, c=baz</pre>
-            HTML;
-        $this->assertSame($expected, $view->generate([
-            'a' => 'foo',
-            'b' => 'bar',
-        ]));
-    }
-
-    /**
-     * @covers ::__construct
-     * @covers ::createContent
-     * @covers ::generate
-     * @covers ::getFilename
-     */
-    public function testCanOutputWithData(): void
-    {
-        // Generate without data.
-        $view = new View(
-            __DIR__ . '/view-files',
-            __DIR__ . '/view-cache',
-            'view-a',
-        );
-        $expected_a = <<<HTML
-            <main>
-            <p>Greetings, Stranger!</p>
-            </main>
-            HTML;
-        $this->assertSame($expected_a, $view->generate());
-
-        // Generate with data.
-        $expected_b = <<<HTML
-            <main>
-            <p>Hello, John!</p>
-            </main>
-            HTML;
-        $this->assertSame($expected_b, $view->generate(['name' => 'John']));
-
-        // Ensure views don't get reserved data.
-        $view = new View(
-            __DIR__ . '/view-files',
-            __DIR__ . '/view-cache',
-            'view-b',
-        );
-        $expected_c = <<<HTML
-            <p>Data keys: []</p>
-            HTML;
-        $this->assertSame($expected_c, $view->generate());
+        $this->assertSame($expected_c, $view->get(['name' => 'Jane']));
     }
 
     protected function setUp(): void

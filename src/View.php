@@ -34,11 +34,6 @@ namespace Laucov\Views;
 class View
 {
     /**
-     * Parent section indicator.
-     */
-    protected const PARENT_SECTION = 1;
-
-    /**
      * Whether this view is currently caching.
      */
     protected bool $cache = false;
@@ -64,45 +59,9 @@ class View
     protected string $directory;
 
     /**
-     * Initial output buffer level.
-     * 
-     * Registered everytime `createContent()` is called.
-     */
-    protected int $obLevel = 0;
-
-    /**
-     * Parent view name.
-     */
-    protected null|string $parent = null;
-
-    /**
      * View path.
      */
     protected string $path;
-
-    /**
-     * Currently open section.
-     */
-    protected null|string $section = null;
-
-    /**
-     * Sections built by child views.
-     * 
-     * @var array<string, string[]>
-     */
-    protected array $sectionOverrides = [];
-
-    /**
-     * Currently built sections.
-     * 
-     * @var array<string, string[]>
-     */
-    protected array $sections = [];
-
-    /**
-     * Current data in use to generate the view's HTML.
-     */
-    protected array $temporaryData = [];
 
     /**
      * Create the view instance.
@@ -131,7 +90,7 @@ class View
     /**
      * Generate the view content or restore its cache.
      */
-    public function generate(array $data = []): string
+    public function get(array $data = []): string
     {
         // Check cache.
         if ($this->cache) {
@@ -153,9 +112,8 @@ class View
         }
 
         // Create HTML.
-        $this->temporaryData = $data;
-        $content = $this->createContent();
-        $this->temporaryData = [];
+        $builder = new Builder($this->directory, $this->path);
+        $content = $builder->generate($data);
 
         // Cache generated view.
         if ($this->cache) {
@@ -172,81 +130,6 @@ class View
     }
 
     /**
-     * Close the currently open section.
-     */
-    protected function closeSection(): string
-    {
-        $this->sections[$this->section][] = ob_get_clean();
-        $this->section = null;
-        return '';
-    }
-
-    /**
-     * Close and print the current open section.
-     */
-    protected function commitSection(): string
-    {
-        $name = $this->section;
-        $this->closeSection();
-        return $this->getSection($name);
-    }
-
-    /**
-     * Create the view's HTML.
-     */
-    protected function createContent(): string
-    {
-        // Get view content.
-        $this->obLevel = ob_get_level();
-        ob_start();
-        extract($this->temporaryData);
-        require $this->getFilename();
-        $content = preg_replace('/^\s+/m', '', ob_get_clean());
-        $content = preg_replace('/\s+$/m', '', $content);
-
-        // Check if the view extends a template.
-        if ($this->parent !== null) {
-            $parent = new View(
-                $this->directory,
-                $this->cacheDirectory,
-                $this->parent,
-            );
-            $section_keys = array_unique([
-                ...array_keys($this->sections),
-                ...array_keys($this->sectionOverrides),
-            ]);
-            $sections = array_map([$this, 'resolveSection'], $section_keys);
-            $sections = array_combine($section_keys, $sections);
-            $parent->sectionOverrides = $sections;
-            $parent_content = $parent->generate($this->temporaryData);
-            $content = strlen($content) > 0
-                ? "{$parent_content}\n{$content}"
-                : $parent_content;
-        }
-
-        return $content;
-    }
-
-    /**
-     * Extend a view.
-     */
-    public function extend(string $path): string
-    {
-        $this->parent = $path;
-        return '';
-    }
-
-    /**
-     * Append the current output buffer to the active section.
-     */
-    public function flushSection(): string
-    {
-        $this->sections[$this->section][] = ob_get_clean();
-        ob_start();
-        return '';
-    }
-
-    /**
      * Get the cache filename.
      */
     protected function getCacheFilename($info = false): string
@@ -255,94 +138,5 @@ class View
             . DIRECTORY_SEPARATOR
             . ($this->cacheCustomPath ?? $this->path)
             . ($info ? '.cache' : '.html');
-    }
-
-    /**
-     * Get the view filename.
-     */
-    protected function getFilename(): string
-    {
-        return $this->directory
-            . DIRECTORY_SEPARATOR
-            . $this->path
-            . '.php';
-    }
-
-    /**
-     * Add the original parent section if overriding.
-     */
-    protected function getParent(): string
-    {
-        $this->flushSection();
-        $this->sections[$this->section][] = static::PARENT_SECTION;
-        return '';
-    }
-
-    protected function include(
-        string $path,
-        null|array $data = null,
-        bool $merge_data = true,
-    ): string {
-        // Merge data.
-        if ($data !== null && $merge_data) {
-            $data = array_replace($this->temporaryData, $data);
-        }
-
-        // Output view.
-        $view = new View(
-            $this->directory,
-            $this->cacheDirectory,
-            $path,
-        );
-
-        return $view->generate($data ?? $this->temporaryData) . PHP_EOL;
-    }
-
-    /**
-     * Open a section to append the next output contents.
-     */
-    protected function openSection(string $name): string
-    {
-        $this->section = $name;
-        ob_start();
-        return '';
-    }
-
-    /**
-     * Get the contents of a section.
-     */
-    protected function getSection(string $name): string
-    {
-        $contents = array_filter($this->resolveSection($name), 'is_string');
-        return implode('', $contents);
-    }
-
-    /**
-     * Resolve all placeholders from a section.
-     * 
-     * @return array<string>
-     */
-    protected function resolveSection(string $name): array
-    {
-        // Get the current section content.
-        $section = $this->sections[$name] ?? [];
-
-        // Apply override.
-        if (array_key_exists($name, $this->sectionOverrides)) {
-            // Get override parts.
-            $override = $this->sectionOverrides[$name];
-            // Merge override with parent section.
-            $result = [];
-            foreach ($override as $part) {
-                if ($part === static::PARENT_SECTION) {
-                    array_push($result, ...$section);
-                } else {
-                    $result[] = $part;
-                }
-            }
-            return $result;
-        } else {
-            return $section;
-        }
     }
 }
