@@ -87,6 +87,35 @@ class Builder
     }
 
     /**
+     * Close the currently open section.
+     */
+    public function closeSection(): string
+    {
+        $this->sections[$this->section][] = ob_get_clean();
+        $this->section = null;
+        return '';
+    }
+
+    /**
+     * Close and print the current open section.
+     */
+    public function commitSection(): string
+    {
+        $name = $this->section;
+        $this->closeSection();
+        return $this->getSection($name);
+    }
+
+    /**
+     * Extend a view.
+     */
+    public function extend(string $path): string
+    {
+        $this->parent = $path;
+        return '';
+    }
+
+    /**
      * Generate the view content or restore its cache.
      */
     public function generate(array $data = []): string
@@ -125,48 +154,9 @@ class Builder
     }
 
     /**
-     * Close the currently open section.
-     */
-    protected function closeSection(): string
-    {
-        $this->sections[$this->section][] = ob_get_clean();
-        $this->section = null;
-        return '';
-    }
-
-    /**
-     * Close and print the current open section.
-     */
-    protected function commitSection(): string
-    {
-        $name = $this->section;
-        $this->closeSection();
-        return $this->getSection($name);
-    }
-
-    /**
-     * Extend a view.
-     */
-    public function extend(string $path): string
-    {
-        $this->parent = $path;
-        return '';
-    }
-
-    /**
-     * Append the current output buffer to the active section.
-     */
-    public function flushSection(): string
-    {
-        $this->sections[$this->section][] = ob_get_clean();
-        ob_start();
-        return '';
-    }
-
-    /**
      * Add the original parent section if overriding.
      */
-    protected function getParent(): string
+    public function getParent(): string
     {
         $this->flushSection();
         $this->sections[$this->section][] = static::PARENT_SECTION;
@@ -176,26 +166,16 @@ class Builder
     /**
      * Get the contents of a section.
      */
-    protected function getSection(string $name): string
+    public function getSection(string $name): string
     {
         $contents = array_filter($this->resolveSection($name), 'is_string');
         return implode('', $contents);
     }
 
     /**
-     * Get all registered section names.
-     * 
-     * @var array<string>
+     * Include a secondary view.
      */
-    protected function getSectionNames(): array
-    {
-        return array_unique([
-            ...array_keys($this->sectionOverrides),
-            ...array_keys($this->sections),
-        ]);
-    }
-
-    protected function include(
+    public function include(
         string $path,
         null|array $data = null,
         bool $merge_data = true,
@@ -215,11 +195,34 @@ class Builder
     /**
      * Open a section to append the next output contents.
      */
-    protected function openSection(string $name): string
+    public function openSection(string $name): string
     {
         $this->section = $name;
         ob_start();
         return '';
+    }
+
+    /**
+     * Append the current output buffer to the active section.
+     */
+    protected function flushSection(): string
+    {
+        $this->sections[$this->section][] = ob_get_clean();
+        ob_start();
+        return '';
+    }
+
+    /**
+     * Get all registered section names.
+     * 
+     * @var array<string>
+     */
+    protected function getSectionNames(): array
+    {
+        return array_unique([
+            ...array_keys($this->sectionOverrides),
+            ...array_keys($this->sections),
+        ]);
     }
 
     /**
