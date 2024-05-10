@@ -44,6 +44,11 @@ class Builder
     protected string $directory;
 
     /**
+     * View filename.
+     */
+    protected string $filename;
+
+    /**
      * Parent view name.
      */
     protected null|string $parent = null;
@@ -84,6 +89,9 @@ class Builder
     {
         $this->directory = rtrim($directory, '\\/');
         $this->path = trim($path, '/');
+        $this->filename = $this->directory
+            . DIRECTORY_SEPARATOR
+            . $this->path . '.php';
     }
 
     /**
@@ -125,10 +133,15 @@ class Builder
         unset($data);
 
         // Build the view content.
-        ob_start();
-        extract($this->temporaryData);
-        require $this->directory . DIRECTORY_SEPARATOR . $this->path . '.php';
-        $content = ob_get_clean();
+        if (file_exists($this->filename)) {
+            extract($this->temporaryData);
+            ob_start();
+            require $this->filename;
+            $content = ob_get_clean();
+        } else {
+            $message = sprintf('Failed to load view "%s".', $this->path);
+            throw new \RuntimeException($message);
+        }
 
         // Check if extends a template.
         if ($this->parent !== null) {

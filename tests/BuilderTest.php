@@ -157,6 +157,17 @@ class BuilderTest extends TestCase
     }
 
     /**
+     * @covers ::generate
+     * @uses Laucov\Views\Builder::__construct
+     */
+    public function testThrowsExceptionsForMissingViews(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $view = new Builder(__DIR__ . '/view-files', 'view-z');
+        $view->generate();
+    }
+
+    /**
      * @covers ::__construct
      * @uses Laucov\Views\Builder::generate
      * @dataProvider pathProvider
