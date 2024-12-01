@@ -85,9 +85,9 @@ class Builder
     /**
      * Create the view instance.
      */
-    public function __construct(string $directory, string $path)
+    public function __construct(string $dir, string $path)
     {
-        $this->directory = rtrim($directory, '\\/');
+        $this->directory = rtrim($dir, '\\/');
         $this->path = trim($path, '/');
         $this->filename = $this->directory
             . DIRECTORY_SEPARATOR
@@ -95,40 +95,11 @@ class Builder
     }
 
     /**
-     * Close the currently open section.
-     */
-    public function closeSection(): string
-    {
-        $this->sections[$this->section][] = ob_get_clean();
-        $this->section = null;
-        return '';
-    }
-
-    /**
-     * Close and print the current open section.
-     */
-    public function commitSection(): string
-    {
-        $name = $this->section;
-        $this->closeSection();
-        return $this->getSection($name);
-    }
-
-    /**
-     * Extend a view.
-     */
-    public function extend(string $path): string
-    {
-        $this->parent = $path;
-        return '';
-    }
-
-    /**
      * Generate the view content or restore its cache.
      */
-    public function generate(array $data = []): string
+    public function build(array $data = []): string
     {
-        // Save data and remove the variable name from the scope.
+        // Set data.
         $this->temporaryData = $data;
         unset($data);
 
@@ -153,7 +124,7 @@ class Builder
             $sections = array_combine($section_names, $sections);
             $parent->sectionOverrides = $sections;
             // Generate and prepend the parent content.
-            $parent_content = $parent->generate($this->temporaryData);
+            $parent_content = $parent->build($this->temporaryData);
             $content = "{$parent_content}\n{$content}";
         }
 
@@ -167,22 +138,88 @@ class Builder
     }
 
     /**
-     * Add the original parent section if overriding.
+     * Close the currently open section.
      */
-    public function getParent(): string
+    public function close(): string
     {
-        $this->flushSection();
-        $this->sections[$this->section][] = static::PARENT_SECTION;
+        $this->sections[$this->section][] = ob_get_clean();
+        $this->section = null;
         return '';
     }
 
     /**
+     * Close the currently open section.
+     * 
+     * @deprecated 2.0.0 Use `close()` instead.
+     */
+    public function closeSection(): string
+    {
+        return $this->close();
+    }
+
+    /**
+     * Close and print the current open section.
+     */
+    public function commit(null|string $name = null): string
+    {
+        // $name = $this->section;
+        // $this->close();
+        if ($name === null) {
+            $name = $this->section;
+            $this->close();
+        }
+        // return $this->load($name);
+        $contents = array_filter($this->resolveSection($name), 'is_string');
+        return implode('', $contents);
+    }
+
+    /**
+     * Close and print the current open section.
+     * 
+     * @deprecated 2.0.0 Use `commit()` instead.
+     */
+    public function commitSection(): string
+    {
+        return $this->commit();
+    }
+
+    /**
+     * Extend a view.
+     */
+    public function extend(string $path): string
+    {
+        $this->parent = $path;
+        return '';
+    }
+
+    /**
+     * Generate the view content or restore its cache.
+     * 
+     * @deprecated 2.0.0 Use `build($data)` instead.
+     */
+    public function generate(array $data = []): string
+    {
+        return $this->build($data);
+    }
+
+    /**
+     * Add the original parent section if overriding.
+     * 
+     * @deprecated 2.0.0 Use `super()` instead.
+     */
+    public function getParent(): string
+    {
+        return $this->super();
+    }
+
+    /**
      * Get the contents of a section.
+     * 
+     * @deprecated 2.0.0 Use `commit($name)` instead.
      */
     public function getSection(string $name): string
     {
-        $contents = array_filter($this->resolveSection($name), 'is_string');
-        return implode('', $contents);
+        return $this->commit($name);
     }
 
     /**
@@ -200,7 +237,7 @@ class Builder
 
         // Output view.
         $view = new Builder($this->directory, $path);
-        $content = $view->generate($data ?? $this->temporaryData);
+        $content = $view->build($data ?? $this->temporaryData);
 
         return "\n{$content}\n";
     }
@@ -208,10 +245,30 @@ class Builder
     /**
      * Open a section to append the next output contents.
      */
-    public function openSection(string $name): string
+    public function open(string $name): string
     {
         $this->section = $name;
         ob_start();
+        return '';
+    }
+
+    /**
+     * Open a section to append the next output contents.
+     * 
+     * @deprecated 2.0.0 Use `open()` instead.
+     */
+    public function openSection(string $name): string
+    {
+        return $this->open($name);
+    }
+
+    /**
+     * Add the original parent section if overriding.
+     */
+    public function super(): string
+    {
+        $this->flushSection();
+        $this->sections[$this->section][] = static::PARENT_SECTION;
         return '';
     }
 

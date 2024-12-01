@@ -57,15 +57,15 @@ class BuilderTest extends TestCase
     }
 
     /**
-     * @covers ::closeSection
-     * @covers ::commitSection
+     * @covers ::close
+     * @covers ::commit
      * @covers ::extend
      * @covers ::flushSection
-     * @covers ::generate
-     * @covers ::getParent
-     * @covers ::getSection
+     * @covers ::build
+     * @covers ::super
+     * @covers ::commit
      * @covers ::getSectionNames
-     * @covers ::openSection
+     * @covers ::open
      * @covers ::resolveSection
      * @uses Laucov\Views\Builder::__construct
      */
@@ -83,7 +83,7 @@ class BuilderTest extends TestCase
             </main>
             <p>Some final note.</p>
             HTML;
-        $this->assertSame($expected, $view->generate());
+        $this->assertSame($expected, $view->build());
 
         // Test grandchild view.
         $view = new Builder(__DIR__ . '/view-files', 'view-d');
@@ -99,13 +99,13 @@ class BuilderTest extends TestCase
             </main>
             <p>Some final note.</p>
             HTML;
-        $this->assertSame($expected, $view->generate(['title' => 'My title']));
+        $this->assertSame($expected, $view->build(['title' => 'My title']));
     }
 
     /**
      * @covers ::include
      * @uses Laucov\Views\Builder::__construct
-     * @uses Laucov\Views\Builder::generate
+     * @uses Laucov\Views\Builder::build
      */
     public function testCanInclude(): void
     {
@@ -119,7 +119,7 @@ class BuilderTest extends TestCase
             <p>Include with custom data without merging:</p>
             <pre>b=hello, c=baz</pre>
             HTML;
-        $this->assertSame($expected, $view->generate([
+        $this->assertSame($expected, $view->build([
             'a' => 'foo',
             'b' => 'bar',
         ]));
@@ -127,7 +127,7 @@ class BuilderTest extends TestCase
 
     /**
      * @covers ::__construct
-     * @covers ::generate
+     * @covers ::build
      */
     public function testCanSetData(): void
     {
@@ -138,7 +138,7 @@ class BuilderTest extends TestCase
             <p>Greetings, Stranger!</p>
             </main>
             HTML;
-        $this->assertSame($expected_a, $view->generate());
+        $this->assertSame($expected_a, $view->build());
 
         // Generate with data.
         $expected_b = <<<HTML
@@ -146,30 +146,30 @@ class BuilderTest extends TestCase
             <p>Hello, John!</p>
             </main>
             HTML;
-        $this->assertSame($expected_b, $view->generate(['name' => 'John']));
+        $this->assertSame($expected_b, $view->build(['name' => 'John']));
 
         // Ensure views don't get reserved data.
         $view = new Builder(__DIR__ . '/view-files', 'view-b');
         $expected_c = <<<HTML
             <p>Data keys: []</p>
             HTML;
-        $this->assertSame($expected_c, $view->generate());
+        $this->assertSame($expected_c, $view->build());
     }
 
     /**
-     * @covers ::generate
+     * @covers ::build
      * @uses Laucov\Views\Builder::__construct
      */
     public function testThrowsExceptionsForMissingViews(): void
     {
         $this->expectException(\RuntimeException::class);
         $view = new Builder(__DIR__ . '/view-files', 'view-z');
-        $view->generate();
+        $view->build();
     }
 
     /**
      * @covers ::__construct
-     * @uses Laucov\Views\Builder::generate
+     * @uses Laucov\Views\Builder::build
      * @dataProvider pathProvider
      */
     public function testTrimsPathsAndAllowsSubfolders(
@@ -177,6 +177,6 @@ class BuilderTest extends TestCase
         string $expected,
     ): void {
         $builder = new Builder(__DIR__ . '/view-files', $path);
-        $this->assertSame($expected, $builder->generate());
+        $this->assertSame($expected, $builder->build());
     }
 }

@@ -43,7 +43,7 @@ class ViewFactoryTest extends TestCase
      * @covers ::__construct
      * @covers ::getView
      * @uses Laucov\Views\Builder::__construct
-     * @uses Laucov\Views\Builder::generate
+     * @uses Laucov\Views\Builder::build
      * @uses Laucov\Views\View::__construct
      * @uses Laucov\Views\View::get
      */

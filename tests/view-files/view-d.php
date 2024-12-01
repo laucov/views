@@ -30,8 +30,8 @@
 ?>
 <?=$this->extend('view-c')?>
 
-<?=$this->openSection('body')?>
+<?=$this->open('body')?>
     <p>Prepend some content.</p>
-    <?=$this->getParent()?>
+    <?=$this->super()?>
     <p>Append some content.</p>
-<?=$this->closeSection()?>
+<?=$this->close()?>

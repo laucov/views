@@ -30,12 +30,12 @@
 ?>
 <?=$this->extend('templates/template-a')?>
 
-<?=$this->openSection('excerpt')?>
+<?=$this->open('excerpt')?>
     <p>This is an excerpt.</p>
-<?=$this->closeSection()?>
+<?=$this->close()?>
 
-<?=$this->openSection('body')?>
+<?=$this->open('body')?>
     <p>This is a body.</p>
-<?=$this->closeSection()?>
+<?=$this->close()?>
 
 <p>Some final note.</p>

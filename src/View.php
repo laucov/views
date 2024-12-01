@@ -113,7 +113,7 @@ class View
 
         // Create HTML.
         $builder = new Builder($this->directory, $this->path);
-        $content = $builder->generate($data);
+        $content = $builder->build($data);
 
         // Cache generated view.
         if ($this->cache) {

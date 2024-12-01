@@ -30,10 +30,10 @@
 ?>
 <header>
     <h1><?=$title ?? 'Article title'?></h1>
-    <?=$this->getSection('excerpt')?>
+    <?=$this->commit('excerpt')?>
 </header>
 <main>
-    <?=$this->openSection('body')?>
+    <?=$this->open('body')?>
         <p>This article does not have a body.</p>
-    <?=$this->commitSection()?>
+    <?=$this->commit()?>
 </main>

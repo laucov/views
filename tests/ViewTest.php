@@ -44,7 +44,7 @@ class ViewTest extends TestCase
      * @covers ::get
      * @covers ::getCacheFilename
      * @uses Laucov\Views\Builder::__construct
-     * @uses Laucov\Views\Builder::generate
+     * @uses Laucov\Views\Builder::build
      */
     public function testCanCache(): void
     {
