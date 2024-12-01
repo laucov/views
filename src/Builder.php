@@ -151,6 +151,7 @@ class Builder
      * Close the currently open section.
      * 
      * @deprecated 2.0.0 Use `close()` instead.
+     * @codeCoverageIgnore
      */
     public function closeSection(): string
     {
@@ -177,6 +178,7 @@ class Builder
      * Close and print the current open section.
      * 
      * @deprecated 2.0.0 Use `commit()` instead.
+     * @codeCoverageIgnore
      */
     public function commitSection(): string
     {
@@ -196,6 +198,7 @@ class Builder
      * Generate the view content or restore its cache.
      * 
      * @deprecated 2.0.0 Use `build($data)` instead.
+     * @codeCoverageIgnore
      */
     public function generate(array $data = []): string
     {
@@ -206,6 +209,7 @@ class Builder
      * Add the original parent section if overriding.
      * 
      * @deprecated 2.0.0 Use `super()` instead.
+     * @codeCoverageIgnore
      */
     public function getParent(): string
     {
@@ -216,6 +220,7 @@ class Builder
      * Get the contents of a section.
      * 
      * @deprecated 2.0.0 Use `commit($name)` instead.
+     * @codeCoverageIgnore
      */
     public function getSection(string $name): string
     {
@@ -256,6 +261,7 @@ class Builder
      * Open a section to append the next output contents.
      * 
      * @deprecated 2.0.0 Use `open()` instead.
+     * @codeCoverageIgnore
      */
     public function openSection(string $name): string
     {
