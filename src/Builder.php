@@ -95,7 +95,7 @@ class Builder
     }
 
     /**
-     * Generate the view content or restore its cache.
+     * Generate the view content.
      */
     public function build(array $data = []): string
     {
@@ -159,7 +159,7 @@ class Builder
     }
 
     /**
-     * Close and print the current open section.
+     * Print the specified section or close and print the current one.
      */
     public function commit(null|string $name = null): string
     {
@@ -175,7 +175,7 @@ class Builder
     }
 
     /**
-     * Close and print the current open section.
+     * Close and print the current section.
      * 
      * @deprecated 2.0.0 Use `commit()` instead.
      * @codeCoverageIgnore
@@ -195,7 +195,7 @@ class Builder
     }
 
     /**
-     * Generate the view content or restore its cache.
+     * Generate the view content.
      * 
      * @deprecated 2.0.0 Use `build($data)` instead.
      * @codeCoverageIgnore
@@ -206,7 +206,7 @@ class Builder
     }
 
     /**
-     * Add the original parent section if overriding.
+     * Print parent contents for the open section.
      * 
      * @deprecated 2.0.0 Use `super()` instead.
      * @codeCoverageIgnore
@@ -217,7 +217,7 @@ class Builder
     }
 
     /**
-     * Get the contents of a section.
+     * Print the specified section.
      * 
      * @deprecated 2.0.0 Use `commit($name)` instead.
      * @codeCoverageIgnore
@@ -228,7 +228,7 @@ class Builder
     }
 
     /**
-     * Include a secondary view.
+     * Print another view.
      */
     public function include(
         string $path,
@@ -248,7 +248,7 @@ class Builder
     }
 
     /**
-     * Open a section to append the next output contents.
+     * Open a section.
      */
     public function open(string $name): string
     {
@@ -258,7 +258,7 @@ class Builder
     }
 
     /**
-     * Open a section to append the next output contents.
+     * Open a section.
      * 
      * @deprecated 2.0.0 Use `open()` instead.
      * @codeCoverageIgnore
@@ -269,7 +269,7 @@ class Builder
     }
 
     /**
-     * Add the original parent section if overriding.
+     * Print parent contents for the open section.
      */
     public function super(): string
     {
